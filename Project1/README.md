@@ -10,7 +10,7 @@ This project is an implementation of dynamically loadable C library for creating
 ## Testing
 To run example tests:
 ```bash
-make
 export LD_LIBRARY_PATH=./
+make
 ./test.sh
 make clean
