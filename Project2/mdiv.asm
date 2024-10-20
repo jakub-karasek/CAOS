@@ -2,100 +2,99 @@ section .text
     global mdiv
 
 mdiv:
-    ; Argumenty:
-    ; rdi - wskaźnik na tablicę (dzielna)
-    ; rsi - rozmiar tablicy (liczba elementów w tablicy)
-    ; rdx - dzielnik
+    ; Arguments:
+    ; rdi - pointer to the array (dividend)
+    ; rsi - size of the array (number of elements in the array)
+    ; rdx - divisor
 
     ; --------------------------------------------
-    ; SEKCJA 1: normalizacja dzielnej
+    ; SECTION 1: normalize the dividend
     ; --------------------------------------------
 
-    xor r10, r10                            ; ustawiam r10 na 0, jeśli dzielna jest dodatnia
-    cmp qword [rdi + rsi*8 - 8], 0          ; sprawdzam, czy ostatni element tablicy jest ujemny
-    jns .dzielna_dodatnia                    ; skacz, jeśli dzielna jest dodatnia
+    xor r10, r10                            ; set r10 to 0 if the dividend is positive
+    cmp qword [rdi + rsi*8 - 8], 0          ; check if the last element of the array is negative
+    jns .dividend_positive                   ; jump if the dividend is positive
 
-    ; DZIELNA UJEMNA:
-    inc r10                                 ; ustawiam r10 na 1, jeśli dzielna jest ujemna
-    xor r9, r9                              ; ustawiam r9 na 0 (indeks tablicy)
-    stc                                     ; ustawiam CF na 1 na początek pętli
-    mov rcx, rsi                            ; ustawiam licznik na długość tablicy
+    ; NEGATIVE DIVIDEND:
+    inc r10                                 ; set r10 to 1 if the dividend is negative
+    xor r9, r9                              ; set r9 to 0 (array index)
+    stc                                     ; set CF to 1 at the start of the loop
+    mov rcx, rsi                            ; set the counter to the length of the array
 
-.negacja_dzielnej_loop:                      ; iteruję po elementach tablicy
+.negation_dividend_loop:                      ; iterate over the elements of the array
 
-    not qword [rdi + r9*8]                  ; neguję bity elementu w tablicy
-    adc qword [rdi + r9*8], 0               ; dodaję 1 do elementu tablicy, jeśli CF jest równy 1
-    inc r9                                  ; przechodzę do następnego elementu
-    loop .negacja_dzielnej_loop
+    not qword [rdi + r9*8]                  ; negate the bits of the element in the array
+    adc qword [rdi + r9*8], 0               ; add 1 to the element in the array if CF is 1
+    inc r9                                  ; move to the next element
+    loop .negation_dividend_loop
 
-.dzielna_dodatnia:
-
-    ; --------------------------------------------
-    ; SEKCJA 2: normalizacja dzielnika
-    ; --------------------------------------------
-
-    xor r11, r11                            ; ustawiam r11 na 0, jeśli dzielnik jest dodatni
-    test rdx, rdx                           ; sprawdzam, czy dzielnik jest ujemny
-    jns .dzielnik_dodatni                    ; skacz, jeśli dzielnik jest dodatni
-
-    ; DZIELNIK UJEMNY:
-    inc r11                                 ; ustawiam r11 na 1, jeśli dzielnik jest ujemny
-    neg rdx                                 ; neguję dzielnik
-
-.dzielnik_dodatni:
+.dividend_positive:
 
     ; --------------------------------------------
-    ; SEKCJA 3: dzielenie
+    ; SECTION 2: normalize the divisor
     ; --------------------------------------------
 
-    mov r8, rdx                             ; zapamiętuję dzielnik w r8
-    xor rdx, rdx                            ; ustawiam rdx na 0 (rdx będzie trzymało resztę z poprzedniego dzielenia)
-    mov rcx, rsi                            ; ustawiam licznik na rozmiar tablicy
+    xor r11, r11                            ; set r11 to 0 if the divisor is positive
+    test rdx, rdx                           ; check if the divisor is negative
+    jns .divisor_positive                    ; jump if the divisor is positive
 
-.dzielenie_loop:                             ; dzielę elementy tablicy
+    ; NEGATIVE DIVISOR:
+    inc r11                                 ; set r11 to 1 if the divisor is negative
+    neg rdx                                 ; negate the divisor
 
-    mov rax, qword [rdi + rcx*8 - 8]        ; ustawiam rax na dolne 64b dzielnej
-    div r8                                  ; dzielę (RDX:RAX / r8) -> (RAX r RDX)
-    mov qword [rdi + rcx*8 - 8], rax        ; wynik dzielenia zapisuję w tablicy
-    loop .dzielenie_loop                     ; kontynuuję pętlę, aż rcx == 0
-
-    ; --------------------------------------------
-    ; SEKCJA 4: normalizacja reszty
-    ; --------------------------------------------
-
-    mov rax, rdx                            ; ustawiam rax na resztę z dzielenia
-    test r10, r10                           ; sprawdzam, czy r10 jest zerem (dzielna była dodatnia)
-    jz .reszta_dodatnia
-    neg rax                                 ; jeśli dzielna była ujemna, neguję resztę z dzielenia
-
-.reszta_dodatnia:
+.divisor_positive:
 
     ; --------------------------------------------
-    ; SEKCJA 5: normalizacja wyniku
+    ; SECTION 3: division
     ; --------------------------------------------
 
-    cmp r10, r11                            ; sprawdzam, czy dzielna i dzielnik mają ten sam znak
-    jz .wynik_dodatni                        ; skacz, jeśli dzielna i dzielnik mają ten sam znak
+    mov r8, rdx                             ; store the divisor in r8
+    xor rdx, rdx                            ; set rdx to 0 (rdx will hold the remainder from the previous division)
+    mov rcx, rsi                            ; set the counter to the size of the array
 
-    ; NEGACJA WYNIKU:
-    xor r9, r9                              ; ustawiam r9 na 0
-    stc                                     ; ustawiam CF na 1 na początek pętli
-    mov rcx, rsi                            ; ustawiam licznik na długość tablicy
+.division_loop:                             ; divide the elements of the array
 
-.negacja_wyniku_loop:
-    not qword [rdi + r9*8]                  ; neguję bity elementu tablicy
-    adc qword [rdi + r9*8], 0               ; dodaję 1 do elementu tablicy, jeśli CF jest równy 1
-    inc r9                                  ; przechodzę do następnego elementu
-    loop .negacja_wyniku_loop
+    mov rax, qword [rdi + rcx*8 - 8]        ; set rax to the lower 64 bits of the dividend
+    div r8                                  ; divide (RDX:RAX / r8) -> (RAX r RDX)
+    mov qword [rdi + rcx*8 - 8], rax        ; store the division result in the array
+    loop .division_loop                     ; continue the loop until rcx == 0
 
-    ret                                     ; kończę funkcję
+    ; --------------------------------------------
+    ; SECTION 4: normalize the remainder
+    ; --------------------------------------------
 
-.wynik_dodatni:
+    mov rax, rdx                            ; set rax to the remainder from the division
+    test r10, r10                           ; check if r10 is zero (the dividend was positive)
+    jz .remainder_positive
+    neg rax                                 ; if the dividend was negative, negate the remainder
 
-    cmp qword [rdi + rsi*8 - 8], 0          ; sprawdzam, czy wynik jest ujemny
-    js .overflow                             ; jeśli wynik jest ujemny, sprawdzam, czy wystąpił overflow
+.remainder_positive:
+
+    ; --------------------------------------------
+    ; SECTION 5: normalize the result
+    ; --------------------------------------------
+
+    cmp r10, r11                            ; check if the dividend and divisor have the same sign
+    jz .result_positive                      ; jump if the dividend and divisor have the same sign
+
+    ; NEGATION OF RESULT:
+    xor r9, r9                              ; set r9 to 0
+    stc                                     ; set CF to 1 at the start of the loop
+    mov rcx, rsi                            ; set the counter to the length of the array
+
+.negation_result_loop:
+    not qword [rdi + r9*8]                  ; negate the bits of the element in the array
+    adc qword [rdi + r9*8], 0               ; add 1 to the element in the array if CF is 1
+    inc r9                                  ; move to the next element
+    loop .negation_result_loop
+
+    ret                                     ; end the function
+
+.result_positive:
+
+    cmp qword [rdi + rsi*8 - 8], 0          ; check if the result is negative
+    js .overflow                             ; if the result is negative, check for overflow
     ret
 .overflow:
 
-    div rcx                                 ; dzielę przez 0, aby wywołać SIGFPE (overflow)
-
+    div rcx                                 ; divide by 0 to trigger SIGFPE (overflow)
