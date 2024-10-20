@@ -3,6 +3,9 @@
 Implementation of the mdiv function in nasm assembly, which performs integer division with remainder.
 Function divides 64*n bits number by 64 bit number, both in two's complement.
 
+## Original task
+[Original task in Polish](./task_description.pdf)
+
 ## Task description
 
 Implement a callable C function in assembly with the following declaration:
