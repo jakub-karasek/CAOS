@@ -34,7 +34,6 @@ The solution will be compiled using the following command:
 
 ```bash
 nasm -f elf64 -w+all -w+error -o mdiv.o mdiv.asm
-The solution must compile successfully in the computer lab.
 ```
 
 ### Grading
