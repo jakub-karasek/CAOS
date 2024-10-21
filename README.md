@@ -5,6 +5,6 @@ This repository contains my projects from the Computer Architecture and Operatin
 
 ## Contents
 
-- **Project 1**: Dynamically loadable C library for managing Boolean circuits composed of NAND gates. [Project description](./Project1/README.md)
+- **Project 1**: C library for managing Boolean circuits composed of NAND gates. [Project description](./Project1/README.md)
 - **Project 2**: Function for dividing n*64 bits number by 64 bit number, written in NASM. [Project description](./Project2/README.md)
 - **Project 3**: NASM Program for calculating [CRC](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) for a file [Project description](./Project3/README.md)
